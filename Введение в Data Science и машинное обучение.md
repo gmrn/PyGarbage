@@ -14,9 +14,9 @@
 
 ### 1.4 Pandas, Dataframes
 
-- [Данные для работы в csv](https://stepik.org/media/attachments/course/4852/StudentsPerformance.csv)
-- [Данные для последнего задания](https://stepik.org/media/attachments/course/4852/titanic.csv)
-- [Тетрадка](https://github.com/gmrn/basic_stat/blob/main/Lessons1_4.ipynb)
+- [Данные для работы в csv](datasets/ds&ml/StudentsPerformance.csv)
+- [Данные для последнего задания](datasets/ds&ml/titanic.csv)
+- [Тетрадка](jupyter/Lessons1_4.ipynb)
 
 
 
