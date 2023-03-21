@@ -8,15 +8,15 @@
 
 ### 1.1 Вводная часть 
 
-### 1.2 Big data, deem ML, основные понятия 
+### 1.2 Big data, deep ML, основные понятия 
 
 ### 1.3 Понятие модели
 
 ### 1.4 Pandas, Dataframes
 
+- [Тетрадка](jupyter/Lessons1_4.ipynb)
 - [Данные для работы в csv](datasets/ds&ml/StudentsPerformance.csv)
 - [Данные для последнего задания](datasets/ds&ml/titanic.csv)
-- [Тетрадка](jupyter/Lessons1_4.ipynb)
 
 
 
