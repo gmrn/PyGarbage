@@ -1,3 +1,3 @@
 Конспекты по дата сайнс, питону, р, скл, статистике, сурс на учебные датасеты и скрипты
 
-<img src="img/inbox_4208294_1c014f0a4490cf323418b80648ba44fe_DATAAC.jpeg" alt="inbox_4208294_1c014f0a4490cf323418b80648ba44fe_DATAAC" style="zoom:40%;" />
+![img](http://imgs.xkcd.com/comics/extrapolating.png)
