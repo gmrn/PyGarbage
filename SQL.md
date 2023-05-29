@@ -50,8 +50,6 @@ WHERE  sex = 'female'
 ORDER BY user_id limit 1000
 ```
 
-
-
 ### SPLIT_PART
 
 ```sql
@@ -63,8 +61,6 @@ WHERE  length(name) = 5
     or split_part(name, ' ', 1) = 'чай'
 GROUP BY product_id
 ```
-
-
 
 ### LIKE
 
@@ -110,8 +106,6 @@ WHERE  lower(name) like 'с%'
 ORDER BY product_id
 ```
 
-
-
 ### BETWEEN, IN, desc
 
 ```sql
@@ -123,8 +117,6 @@ WHERE  user_id in (170, 200, 230)
    and '2022.09.05'
 ORDER BY order_id desc
 ```
-
-
 
 ### DATE_PART
 
@@ -159,8 +151,6 @@ WHERE  action = 'cancel_order'
    and 15
 ORDER BY order_id desc
 ```
-
-
 
 ### CASE, WHEN, THEN, END
 
@@ -230,8 +220,6 @@ FROM   users
 
 ```
 
-
-
 ### COUNT(*), COUNT(column1, column2...)
 
 ```sql
@@ -240,8 +228,6 @@ SELECT count(*) users,
        count(distinct user_id) unique_users
 FROM   user_actions
 ```
-
-
 
 ### array_length
 
@@ -270,8 +256,6 @@ FROM   orders
 WHERE  array_length(product_ids, 1) = 9
 ```
 
-
-
 ### AGE, current_date
 
 ```sql
@@ -295,7 +279,7 @@ from users
 where sex='male'
 ```
 
-
+***
 
 ```sql
 -- task 11
@@ -312,8 +296,6 @@ SELECT round(avg(array_length(product_ids, 1)), 2) avg_order_size
 FROM   orders
 WHERE  date_part('dow', creation_time) in (6, 0)
 ```
-
-
 
 ### FILTER
 
@@ -333,3 +315,128 @@ SELECT count(*) orders,
 FROM   orders
 ```
 
+
+
+
+
+## 6 Группировка данных
+
+- [PostgreSQL DATE_TRUNC Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-date_trunc/)
+
+
+
+**summary**
+
+- Работа с оператором `GROUP BY`
+
+- Агрегирующие функции с сгруппированным данными
+- Фильтрация результата группировки с помощью оператора `HAVING`
+- Округление дат - `DATE_TRUNC`
+- Агрегатные выражения поверх группировки
+- Решение задачи с группировкой и `CASE`
+
+```sql
+SELECT     -- перечисление полей результирующей таблицы
+FROM       -- указание источника данных
+WHERE      -- фильтрация данных
+GROUP BY   -- группировка данных
+HAVING     -- фильтрация данных после группировки
+ORDER BY   -- сортировка результирующей таблицы
+LIMIT      -- ограничение количества выводимых записей
+```
+
+
+
+[Practice](sql_queries/simulator_sql/6_groups.sql)
+
+### GROUP BY
+
+При использовании группировки колонки, указанные в `SELECT`, должны находиться и в `GROUP BY`, если они не используются в агрегационных функциях. Это обязательное условие, и если оно не будет выполнено, то база данных вернёт ошибку
+
+```sql
+SELECT column_1, column_2, SUM(column_3)
+FROM table
+GROUP BY 1, 2
+```
+
+```sql
+-- task 4
+SELECT date_part('year', age((birth_date))) age,
+       sex,
+       count(1) users_count
+FROM   users
+WHERE  birth_date is not null
+GROUP BY age, sex
+ORDER BY age, sex
+```
+
+### DATE_TRUNC
+
+```sql
+SELECT DATE_TRUNC('month', TIMESTAMP '2022-01-12 08:55:30')
+-- 01/01/22 00:00
+
+SELECT DATE_TRUNC('day', TIMESTAMP '2022-01-12 08:55:30')
+-- 12/01/22 00:00	
+
+SELECT DATE_TRUNC('hour', TIMESTAMP '2022-01-12 08:55:30')
+-- 12/01/22 08:00	
+```
+
+```sql
+-- task 5
+SELECT date_trunc('month', time) as month,
+       action,
+       count(order_id) orders_count
+FROM   user_actions
+GROUP BY month, action
+```
+
+### HAVING
+
+```sql
+-- task 7
+SELECT array_length(product_ids, 1) order_size,
+       count(order_id) orders_count
+FROM   orders
+GROUP BY order_size having count(order_id) > 5000
+ORDER BY order_size
+```
+
+```sql
+-- task 10
+SELECT user_id
+FROM   user_actions
+WHERE  action = 'create_order'
+GROUP BY user_id having max(time) < '2022-09-08'
+ORDER BY user_id
+```
+
+### GROUP BY + filter, CASE
+
+```sql
+-- task 11
+SELECT user_id,
+       round(count(distinct order_id) filter(WHERE action = 'cancel_order')::decimal / count(distinct order_id)::decimal,
+             2) cancel_rate
+FROM   user_actions
+GROUP BY user_id
+ORDER BY user_id
+```
+
+```sql
+-- task 12
+SELECT case when date_part('year', age(birth_date)) between 19 and
+                 24 then '19-24'
+            when date_part('year', age(birth_date)) between 25 and
+                 29 then '25-29'
+            when date_part('year', age(birth_date)) between 30 and
+                 35 then '30-35'
+            when date_part('year', age(birth_date)) between 36 and
+                 41 then '36-41' end as group_age,
+       count(user_id) as users_count
+FROM   users
+WHERE  birth_date is not null
+GROUP BY group_age
+ORDER BY group_age	
+```
