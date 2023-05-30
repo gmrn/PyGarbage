@@ -1,9 +1,11 @@
+
 -- task 1
 SELECT sex,
        count(courier_id) couriers_count
 FROM   couriers
 GROUP BY sex
 ORDER BY (count(courier_id))
+
 
 -- task 2
 SELECT sex,
@@ -12,12 +14,14 @@ FROM   users
 GROUP BY sex
 ORDER BY max_age
 
+
 -- task 3
 SELECT date_part('year', age((birth_date))) age,
        count(1) users_count
 FROM   users
 GROUP BY 1
 ORDER BY 1
+
 
 -- task 4
 SELECT date_part('year', age((birth_date))) age,
@@ -28,12 +32,14 @@ WHERE  birth_date is not null
 GROUP BY age, sex
 ORDER BY age, sex
 
+
 -- task 5
 SELECT date_trunc('month', time) as month,
        action,
        count(order_id) orders_count
 FROM   user_actions
 GROUP BY month, action
+
 
 -- task 6
 SELECT array_length(product_ids, 1) as order_size,
@@ -42,12 +48,14 @@ FROM   orders
 GROUP BY order_size
 ORDER BY order_size
 
+
 -- task 7
 SELECT array_length(product_ids, 1) order_size,
        count(order_id) orders_count
 FROM   orders
 GROUP BY order_size having count(order_id) > 5000
 ORDER BY order_size
+
 
 -- task 8
 SELECT courier_id,
@@ -59,6 +67,7 @@ WHERE  date_part('month', time) = 8
 GROUP BY courier_id
 ORDER BY delivered_orders desc limit 3
 
+
 -- task 9
 SELECT courier_id,
        count(order_id) delivered_orders
@@ -68,12 +77,14 @@ WHERE  date_part('month', time) = 9
 GROUP BY courier_id having count(order_id) = 1
 ORDER BY courier_id
 
+
 -- task 10
 SELECT user_id
 FROM   user_actions
 WHERE  action = 'create_order'
 GROUP BY user_id having max(time) < '2022-09-08'
 ORDER BY user_id
+
 
 -- task 11
 SELECT user_id,
@@ -82,6 +93,7 @@ SELECT user_id,
 FROM   user_actions
 GROUP BY user_id
 ORDER BY user_id
+
 
 -- task 12
 SELECT case when date_part('year', age(birth_date)) between 19 and

@@ -4,9 +4,9 @@
 
 [Redash](https://redash.public.karpov.courses/)
 
-
-
-
+#
+#
+#
 
 ## 4 Фильтрация данных
 
@@ -440,3 +440,147 @@ WHERE  birth_date is not null
 GROUP BY group_age
 ORDER BY group_age	
 ```
+
+
+
+
+
+## 7 Подзапросы
+
+- [A Comprehensive Look at PostgreSQL Interval Data Type](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-interval/)
+- [PostgreSQL NOW Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-now/)
+
+
+
+**summary**
+
+- Порядок выполнения операторов в запросах в движке
+- Подзапросы в блоках `SELECT`, `FROM`, `WHERE `и `HAVING`
+- Табличные выражения с оператором `WITH`
+- Функция `NOW`, арифметические операции с интервалами
+- Функция `unnest` для развертки списков со значениями в расширенные таблицы
+
+```sql
+SELECT     -- перечисление полей результирующей таблицы
+FROM       -- указание источника данных
+WHERE      -- фильтрация данных
+GROUP BY   -- группировка данных
+HAVING     -- фильтрация данных после группировки
+ORDER BY   -- сортировка результирующей таблицы
+LIMIT      -- ограничение количества выводимых записей
+
+
+-- real execution order of instructions of code
+FROM
+WHERE
+GROUP BY
+HAVING
+SELECT
+ORDER BY
+LIMIT
+```
+
+
+
+[Practice](sql_queries/simulator_sql/7_subqueries.sql)
+
+### WITH
+
+```sql
+-- task 2
+with tt as (SELECT user_id,
+                   count(order_id) orders_count
+            FROM   user_actions
+            WHERE  action = 'create_order'
+            GROUP BY user_id)
+SELECT round(avg(orders_count), 2) orders_avg
+FROM tt
+```
+
+### WHERE column = MAX()...
+
+```sql
+SELECT column
+FROM table
+WHERE column = (SELECT MAX(column) FROM table) 
+```
+
+### INTERVAL, NOW
+
+```sql
+SELECT NOW() - INTERVAL '1 year 2 months 1 week'
+-- 10/10/21 19:32
+```
+
+```sql
+-- task 5
+SELECT count(distinct user_id) users_count
+FROM   user_actions
+WHERE  action = 'create_order'
+   and time > (SELECT max(time)
+            FROM   user_actions) - interval '1 week'
+```
+
+### IN + subquery
+
+Подзапрос, возвращающий несколько значений, может использоваться в блоке `WHERE` совместно с оператором `IN`. При этом в табличном выражении должен быть всего один столбец, иначе база данных вернёт ошибку.
+
+```sql
+-- task 7
+SELECT order_id
+FROM   user_actions
+WHERE  order_id not in (SELECT DISTINCT order_id
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order')
+ORDER BY order_id limit 1000
+```
+
+### CASE + subquery
+
+```sql
+-- task 11
+with avgp as(SELECT round(avg(price), 2)
+             FROM   products)
+SELECT product_id,
+       name,
+       price,
+       case when price - (SELECT *
+                   FROM   avgp) >= 50 then price*0.85 when (SELECT *
+                                         FROM   avgp) - price >= 50 then price*0.9 else price end as new_price
+FROM   products
+ORDER BY price desc, product_id
+```
+
+### unnest
+
+```sql
+SELECT 'row', unnest(ARRAY['one','two','three'])
+-- row    one
+-- row    two
+-- row    three
+```
+
+```sql
+-- task 12
+SELECT creation_time,
+       order_id,
+       product_ids,
+       unnest(product_ids) product_id
+FROM   orders limit 100
+```
+
+### COALESCE
+
+```sql
+-- task 15
+with _ as(SELECT user_id,
+                 date_part('year', age((SELECT max(time)
+                                 FROM   user_actions), birth_date)) as ages
+          FROM   users)
+SELECT user_id,
+       coalesce(ages, (SELECT round(avg(ages))
+                FROM   _)) as age
+FROM   _
+ORDER BY user_id
+```
+
