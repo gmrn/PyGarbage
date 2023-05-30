@@ -4,9 +4,8 @@
 
 [Redash](https://redash.public.karpov.courses/)
 
-#
-#
-#
+ 
+
 
 ## 4 Фильтрация данных
 
@@ -17,7 +16,7 @@
 - [PostgreSQL BETWEEN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-between/)
 - [PostgreSQL IS NULL](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-is-null/)
 
-
+ 
 
 **summary**
 
@@ -36,7 +35,7 @@ ORDER BY   -- сортировка результирующей таблицы
 LIMIT      -- ограничение количества выводимых записей
 ```
 
-
+ 
 
 [Practice](sql_queries/simulator_sql/4_filter.sql)
 
@@ -50,6 +49,8 @@ WHERE  sex = 'female'
 ORDER BY user_id limit 1000
 ```
 
+ 
+
 ### SPLIT_PART
 
 ```sql
@@ -61,6 +62,8 @@ WHERE  length(name) = 5
     or split_part(name, ' ', 1) = 'чай'
 GROUP BY product_id
 ```
+
+ 
 
 ### LIKE
 
@@ -106,6 +109,8 @@ WHERE  lower(name) like 'с%'
 ORDER BY product_id
 ```
 
+ 
+
 ### BETWEEN, IN, desc
 
 ```sql
@@ -117,6 +122,8 @@ WHERE  user_id in (170, 200, 230)
    and '2022.09.05'
 ORDER BY order_id desc
 ```
+
+ 
 
 ### DATE_PART
 
@@ -152,6 +159,8 @@ WHERE  action = 'cancel_order'
 ORDER BY order_id desc
 ```
 
+ 
+
 ### CASE, WHEN, THEN, END
 
 ```sql
@@ -169,9 +178,9 @@ FROM   products
 ORDER BY price_before_tax desc, product_id
 ```
 
+ 
 
-
-
+ 
 
 ## 5 Агрегация данных
 
@@ -180,7 +189,7 @@ ORDER BY price_before_tax desc, product_id
 - [Aggregate Functions](https://www.postgresql.org/docs/9.5/functions-aggregate.html)
 - [Array Functions and Operators](https://www.postgresql.org/docs/8.4/functions-array.html)
 
-
+ 
 
 **summary**
 
@@ -198,7 +207,7 @@ ORDER BY price_before_tax desc, product_id
 
 - Агрегатные выражения с фильтрацией
 
-  
+   
 
 [Practice](sql_queries/simulator_sql/5_aggregate.sql)
 
@@ -220,6 +229,8 @@ FROM   users
 
 ```
 
+ 
+
 ### COUNT(*), COUNT(column1, column2...)
 
 ```sql
@@ -228,6 +239,8 @@ SELECT count(*) users,
        count(distinct user_id) unique_users
 FROM   user_actions
 ```
+
+ 
 
 ### array_length
 
@@ -256,6 +269,8 @@ FROM   orders
 WHERE  array_length(product_ids, 1) = 9
 ```
 
+ 
+
 ### AGE, current_date
 
 ```sql
@@ -279,7 +294,7 @@ from users
 where sex='male'
 ```
 
-***
+ 
 
 ```sql
 -- task 11
@@ -296,6 +311,8 @@ SELECT round(avg(array_length(product_ids, 1)), 2) avg_order_size
 FROM   orders
 WHERE  date_part('dow', creation_time) in (6, 0)
 ```
+
+ 
 
 ### FILTER
 
@@ -315,15 +332,15 @@ SELECT count(*) orders,
 FROM   orders
 ```
 
+ 
 
-
-
+ 
 
 ## 6 Группировка данных
 
 - [PostgreSQL DATE_TRUNC Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-date_trunc/)
 
-
+ 
 
 **summary**
 
@@ -345,7 +362,7 @@ ORDER BY   -- сортировка результирующей таблицы
 LIMIT      -- ограничение количества выводимых записей
 ```
 
-
+ 
 
 [Practice](sql_queries/simulator_sql/6_groups.sql)
 
@@ -370,6 +387,8 @@ GROUP BY age, sex
 ORDER BY age, sex
 ```
 
+ 
+
 ### DATE_TRUNC
 
 ```sql
@@ -392,6 +411,8 @@ FROM   user_actions
 GROUP BY month, action
 ```
 
+ 
+
 ### HAVING
 
 ```sql
@@ -411,6 +432,8 @@ WHERE  action = 'create_order'
 GROUP BY user_id having max(time) < '2022-09-08'
 ORDER BY user_id
 ```
+
+ 
 
 ### GROUP BY + filter, CASE
 
@@ -441,16 +464,16 @@ GROUP BY group_age
 ORDER BY group_age	
 ```
 
+ 
 
-
-
+ 
 
 ## 7 Подзапросы
 
 - [A Comprehensive Look at PostgreSQL Interval Data Type](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-interval/)
 - [PostgreSQL NOW Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-now/)
 
-
+ 
 
 **summary**
 
@@ -480,7 +503,7 @@ ORDER BY
 LIMIT
 ```
 
-
+ 
 
 [Practice](sql_queries/simulator_sql/7_subqueries.sql)
 
@@ -497,6 +520,8 @@ SELECT round(avg(orders_count), 2) orders_avg
 FROM tt
 ```
 
+ 
+
 ### WHERE column = MAX()...
 
 ```sql
@@ -504,6 +529,8 @@ SELECT column
 FROM table
 WHERE column = (SELECT MAX(column) FROM table) 
 ```
+
+ 
 
 ### INTERVAL, NOW
 
@@ -521,6 +548,8 @@ WHERE  action = 'create_order'
             FROM   user_actions) - interval '1 week'
 ```
 
+ 
+
 ### IN + subquery
 
 Подзапрос, возвращающий несколько значений, может использоваться в блоке `WHERE` совместно с оператором `IN`. При этом в табличном выражении должен быть всего один столбец, иначе база данных вернёт ошибку.
@@ -534,6 +563,8 @@ WHERE  order_id not in (SELECT DISTINCT order_id
                         WHERE  action = 'cancel_order')
 ORDER BY order_id limit 1000
 ```
+
+ 
 
 ### CASE + subquery
 
@@ -550,6 +581,8 @@ SELECT product_id,
 FROM   products
 ORDER BY price desc, product_id
 ```
+
+ 
 
 ### unnest
 
@@ -568,6 +601,8 @@ SELECT creation_time,
        unnest(product_ids) product_id
 FROM   orders limit 100
 ```
+
+ 
 
 ### COALESCE
 
