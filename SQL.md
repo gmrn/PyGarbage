@@ -584,3 +584,271 @@ FROM   _
 ORDER BY user_id
 ```
 
+
+
+
+
+## 8 JOIN
+
+- [Декартово произведение](https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D1%8F%D0%BC%D0%BE%D0%B5_%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%B5%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5)
+- [Диаграмма Венна](https://ru.wikipedia.org/wiki/%D0%94%D0%B8%D0%B0%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B0_%D0%92%D0%B5%D0%BD%D0%BD%D0%B0)
+- [PostgreSQL INNER JOIN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-inner-join/)
+- [PostgreSQL LEFT JOIN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-left-join/)
+- [PostgreSQL FULL OUTER JOIN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-full-outer-join/)
+- [PostgreSQL Cross Join By Example](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-cross-join/)
+- l
+- l
+
+
+
+**summary**
+
+- Типы объединений таблиц: `INNER JOIN`, `LEFT JOIN`, `FULL JOIN` и `CROSS JOIN`
+- Операции `UNION`, `EXCEPT` и `INTERSECT`
+- Объединие значений в строках в списки - операция `array_agg`
+- Особенность объединения `SELF JOIN`
+
+```sql
+SELECT     -- перечисление полей результирующей таблицы
+FROM       -- указание источника данных
+JOIN       -- объединение источника с другой таблицей
+WHERE      -- фильтрация данных
+GROUP BY   -- группировка данных
+HAVING     -- фильтрация данных после группировки
+ORDER BY   -- сортировка результирующей таблицы
+LIMIT      -- ограничение количества выводимых записей
+```
+
+
+
+[Practice](sql_queries/simulator_sql/8_kind_join.sql)
+
+### Основные типы объединений JOIN
+
+1. `INNER JOIN`
+2. `LEFT/RIGHT JOIN`
+3. `FULL JOIN`
+4. `CROSS JOIN`
+
+```sql
+SELECT table_1.column_1, table_2.column_2
+FROM table_1 
+     JOIN table_2
+     ON table_1.id = table_2.id
+...
+```
+
+Если имя поля, по которому происходит объединение, совпадает в обеих таблицах (как в примерах выше), то можно использовать сокращенную запись c оператором `USING`:
+
+```sql
+SELECT a.column_1, b.column_2
+FROM table_1 a 
+     JOIN table_2 b
+     USING (id)
+...
+```
+
+### Основной принцип работы
+
+Процесс объединения можно представить в виде следующей последовательности операций:
+
+1. Сначала каждая строка первой таблицы сопоставляется с каждой строкой второй таблицы. т.е. происходит [декартово произведение](https://ru.wikipedia.org/wiki/Прямое_произведение) двух множеств, результатом которого является новое множество, состоящее из всевозможных пар исходных строк. Например, если в одной таблице было 50 записей, а в другой 10, то в результате декартова произведения получится 500 записей. На игрушечном примере это можно представить следующим образом:
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257150/cross.png)
+
+------
+
+2. Затем для каждой объединённой строки, состоящей из строк двух исходных таблиц, проверяется условие соединения, указанное после оператора `ON`.
+3. После этого в соответствии с выбранным типом объединения формируется результирующая таблица. 
+
+### INNER JOIN
+
+Результат объединения `INNER JOIN` формируется следующим образом:
+
+- Сначала каждая строка первой таблицы сопоставляется с каждой строкой второй таблицы (происходит декартово произведение)
+- Затем для каждой объединённой строки проверяется условие соединения, указанное после оператора `ON`
+- После этого все объединённые строки, для которых условие оказалось истинным, добавляются в результирующую таблицу
+
+------
+
+В результате объединения `INNER JOIN` из двух таблиц отбрасываются все строки, которые не прошли проверку на соответствие указанному условию.
+
+```sql
+SELECT A.id as id,
+       A.city as city,
+       B.country as country
+FROM table_A as A
+     JOIN table_B as B
+     ON A.id = B.id
+```
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257151/innerjoin1.png)
+
+------
+
+Схема `INNER JOIN`: 
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257151/innerjoin2.png)
+
+```sql
+-- task 1
+SELECT u.user_id user_id_left,
+       u_.user_id user_id_right,
+       u.*
+FROM   users u join user_actions u_ using(user_id)
+ORDER BY 1
+```
+
+### LEFT JOIN, RIGHT JOIN
+
+Результат объединения `LEFT JOIN` формируется следующим образом:
+
+- Сначала каждая строка левой таблицы сопоставляется с каждой строкой правой таблицы (происходит декартово произведение)
+- Затем для каждой объединённой строки проверяется условие соединения, указанное после оператора `ON`
+- После этого все объединённые строки, для которых условие оказалось истинным, добавляются в результирующую таблицу
+- Далее в результат добавляются те записи из левой таблицы (внимание: только из левой), для которых условие оказалось ложным и которые не вошли в соединение на предыдущем шаге. При этом для таких записей соответствующие поля из правой таблицы заполняются значениями `NULL`
+
+------
+
+```sql
+SELECT A.id as id,
+       A.city as city,
+       B.country as country
+FROM table_A as A
+     LEFT JOIN table_B as B
+     ON A.id = B.id
+```
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/leftjoin1.png)
+
+------
+
+Диаграмма Венна для `LEFT JOIN`:
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/leftjoin2.png)
+
+
+
+```sql
+SELECT B.id as id,
+       A.city as city,
+       B.country as country
+FROM table_A as A
+     RIGHT JOIN table_B as B
+     ON A.id = B.id
+```
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/rightjoin1.png)
+
+------
+
+Диаграмма Венна для `RIGHT JOIN`:
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/rightjoin2.png)
+
+```sql
+SELECT NOW() - INTERVAL '1 year 2 months 1 week'
+-- 10/10/21 19:32
+```
+
+### FULL JOIN
+
+```sql
+SELECT A.id as id,
+       A.city as city,
+       B.country as country
+FROM table_A as A
+     FULL JOIN table_B as B
+     ON A.id = B.id
+```
+
+------
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260434/fullouterjoin1.png)
+
+------
+
+Диаграмма Венна для `FULL JOIN`:
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260434/fullouterjoin2.png)
+
+
+
+### UNION, EXCEPT, INTERSECT
+
+Операции с множествами:
+
+1. `UNION`
+2. `EXCEPT`
+3. `INTERSECT`
+
+Они позволяют комбинировать результаты нескольких запросов друг с другом и получать один общий результат. В операциях с множествами не происходит совмещения столбцов из двух таблиц — база данных просто отбирает строки из таблиц, удовлетворяющие типу операции, и добавляет их в общий результат.
+
+```sql
+SELECT column_1, column_2
+FROM table_1
+UNION
+SELECT column_1, column_2
+FROM table_2
+```
+
+Операция `UNION` объединяет записи из двух запросов в один общий результат (объединение множеств).
+
+Операция `EXCEPT` возвращает все записи, которые есть в первом запросе, но отсутствуют во втором (разница множеств).
+
+Операция `INTERSECT` возвращает все записи, которые есть и в первом, и во втором запросе (пересечение множеств).
+
+При этом по умолчанию эти операции исключают из результата строки-дубликаты. Чтобы дубликаты не исключались из результата, необходимо после имени операции указать ключевое слово `ALL`.
+
+```sql
+SELECT column_1, column_2
+FROM table_1
+UNION ALL
+SELECT column_1, column_2
+FROM table_2
+```
+
+Диаграммы Венна для операций:
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260437/set_operators.jpg)
+
+------
+
+Для работы этих операций необходимо, чтобы выполнялись следующие условия:
+
+1. В каждом запросе в `SELECT` должно быть одинаковое количество столбцов (допускается несколько)
+2. Типы данных в столбцах должны быть совместимы
+
+### CROSS JOIN
+
+`CROSS JOIN` — обычное декартово произведение двух таблиц без условия соединения.
+
+```sql
+SELECT
+    A.city as city,
+    B.country as country
+FROM table_A as A
+     CROSS JOIN table_B as B
+```
+
+------
+
+![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260453/cross.png)
+
+#
+
+```sql
+-- task 11
+SELECT user_id,
+       round(avg(array_length(product_ids, 1)), 2) avg_order_size
+FROM   (SELECT user_id,
+               order_id
+        FROM   user_actions except
+SELECT user_id,
+               order_id
+        FROM   user_actions
+        WHERE  action = 'cancel_order') _ join orders using (order_id)
+GROUP BY user_id
+ORDER BY user_id limit 1000
+```
+
