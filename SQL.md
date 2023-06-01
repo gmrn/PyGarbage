@@ -4,9 +4,132 @@
 
 [Redash](https://redash.public.karpov.courses/)
 
-#
-#
-#
+
+
+## 1
+
+## 2
+
+## 3 Базовые запросы SQL
+
+- [PostgreSQL String Functions](https://www.postgresqltutorial.com/postgresql-string-functions/)
+- [Using PostgreSQL CAST To Convert a Value of One Type to Another](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-cast/)
+- [PostgreSQL Data Types](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-data-types/)
+- [PostgreSQL CONCAT Function](https://www.postgresqltutorial.com/postgresql-string-functions/postgresql-concat-function/)
+- [PostgreSQL DATE_PART Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-date_part/)
+- [PostgreSQL COALESCE](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-coalesce/)
+- [Mathematical Functions and Operators](https://www.postgresql.org/docs/9.3/functions-math.html)
+- [PostgreSQL Math Functions](https://lab.karpov.courses/learning/152/module/1762/lesson/18484/53190/250929/)
+
+
+
+```sql
+SELECT    -- перечисление полей результирующей таблицы
+FROM      -- указание источника данных
+ORDER BY  -- сортировка результирующей таблицы
+LIMIT     -- ограничение количества выводимых записей
+```
+
+
+
+### ORDER BY, DESC
+
+```sql
+SELECT column_1, column_2
+FROM table
+ORDER BY column_1 DESC, column_2    -- сначала сортировка по первой колонке (по убыванию), 
+                                    -- затем по второй (по возрастанию)
+
+```
+
+### Алиасы
+
+```sql
+SELECT name AS new_name
+FROM table
+```
+
+### SPLIT_PART, UPPER, LEFT, LENGTH
+
+```sql
+SELECT LENGTH(column) AS column_length
+FROM table
+
+SELECT UPPER(LEFT('holy shit its ***', 4)) AS new_name
+-- HOLY
+
+SELECT SPLIT_PART('holy shit its ***', ' ', 2)
+-- shit
+```
+
+### VARCHAR
+
+```sql
+SELECT column::VARCHAR
+FROM table
+```
+
+### TIMESTAMP, DATE, DATE_PART
+
+```sql
+SELECT DATE_PART('year', DATE '2022-01-12')
+-- 2022.00
+
+
+SELECT DATE_PART('month', DATE '2022-01-12')
+-- 1.00
+
+
+SELECT DATE_PART('day', DATE '2022-01-12')
+-- 12.00
+
+
+SELECT DATE_PART('hour', TIMESTAMP '2022-01-12 20:31:05')
+-- 20.00
+
+
+SELECT DATE_PART('minute', TIMESTAMP '2022-01-12 20:31:05')
+-- 31.00
+
+-- day ofweek
+SELECT DATE_PART('dow', TIMESTAMP '2022-01-12 20:31:05')
+-- 3
+-- 0 - Sunday, 6 - Saturnday
+```
+
+### COALESCE
+
+```sql
+SELECT COALESCE(column, 'filler value')
+FROM table
+```
+
+### Math Functions
+
+| Function                                                     | Description                                                  | Example     | Result      |
+| :----------------------------------------------------------- | :----------------------------------------------------------- | :---------- | :---------- |
+| [ABS](https://www.postgresqltutorial.com/postgresql-abs/)    | Calculate the absolute value of a number                     | ABS(-10)    | 10          |
+| CBRT                                                         | Calculate the cube root of a number                          | CBRT(8)     | 2           |
+| ...                                                          |                                                              |             |             |
+| [TRUNC](https://www.postgresqltutorial.com/postgresql-trunc/) | Truncate a numeric value to a whole number of the specified decimal places | TRUNC(12.3) | 12          |
+| WIDTH_BUCKET                                                 | Assign values to buckets in an equi-width histogram.         |             |             |
+| RANDOM                                                       | Return a random number that ranges from 0 to 1               |             | 0.968435665 |
+
+### CASE
+
+```sql
+SELECT name,
+       CASE 
+       WHEN name='свинина' OR name='баранина' OR name='курица' THEN 'мясо'
+       WHEN name='треска' OR name='форель' OR name='окунь' THEN 'рыба'
+       ELSE 'другое'
+       END AS сategory
+FROM table
+```
+
+
+
+
 
 ## 4 Фильтрация данных
 
@@ -596,8 +719,10 @@ ORDER BY user_id
 - [PostgreSQL LEFT JOIN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-left-join/)
 - [PostgreSQL FULL OUTER JOIN](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-full-outer-join/)
 - [PostgreSQL Cross Join By Example](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-cross-join/)
-- l
-- l
+- [PostgreSQL ARRAY_AGG Function](https://www.postgresqltutorial.com/postgresql-aggregate-functions/postgresql-array_agg/)
+- [PostgreSQL Self-Join](https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-self-join/)
+- [Понимание джойнов сломано 1](https://habr.com/ru/articles/448072/)
+- [Понимание джойнов сломано 2](https://habr.com/ru/articles/450528/)
 
 
 
@@ -648,6 +773,8 @@ FROM table_1 a
 ...
 ```
 
+
+
 ### Основной принцип работы
 
 Процесс объединения можно представить в виде следующей последовательности операций:
@@ -660,6 +787,8 @@ FROM table_1 a
 
 2. Затем для каждой объединённой строки, состоящей из строк двух исходных таблиц, проверяется условие соединения, указанное после оператора `ON`.
 3. После этого в соответствии с выбранным типом объединения формируется результирующая таблица. 
+
+
 
 ### INNER JOIN
 
@@ -698,6 +827,8 @@ SELECT u.user_id user_id_left,
 FROM   users u join user_actions u_ using(user_id)
 ORDER BY 1
 ```
+
+
 
 ### LEFT JOIN, RIGHT JOIN
 
@@ -750,6 +881,8 @@ FROM table_A as A
 SELECT NOW() - INTERVAL '1 year 2 months 1 week'
 -- 10/10/21 19:32
 ```
+
+
 
 ### FULL JOIN
 
@@ -819,6 +952,8 @@ FROM table_2
 1. В каждом запросе в `SELECT` должно быть одинаковое количество столбцов (допускается несколько)
 2. Типы данных в столбцах должны быть совместимы
 
+
+
 ### CROSS JOIN
 
 `CROSS JOIN` — обычное декартово произведение двух таблиц без условия соединения.
@@ -835,7 +970,7 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260453/cross.png)
 
-#
+
 
 ```sql
 -- task 11
@@ -850,5 +985,48 @@ SELECT user_id,
         WHERE  action = 'cancel_order') _ join orders using (order_id)
 GROUP BY user_id
 ORDER BY user_id limit 1000
+```
+
+### array_agg
+
+`array_agg` — агрегирующая функция, собирает все значения в указанном столбце в единый список `ARRAY`
+
+```sql
+SELECT column_1, array_agg(column_2) AS new_array
+FROM table
+GROUP BY column_1
+```
+
+```sql
+-- task 18
+SELECT order_id,
+       array_agg(name) product_names
+FROM   (SELECT order_id,
+               unnest(product_ids) product_id
+        FROM   orders)_
+    LEFT JOIN products using (product_id)
+GROUP BY order_id limit 1000
+```
+
+### SELF JOIN
+
+```sql
+SELECT ...
+FROM table JOIN table
+     ON [condition]
+
+
+SELECT ...
+FROM table LEFT JOIN table
+     ON [condition]
+
+
+SELECT ...
+FROM table FULL JOIN table
+     ON [condition]
+
+
+SELECT ...
+FROM table CROSS JOIN table
 ```
 
