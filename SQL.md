@@ -888,6 +888,10 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257151/innerjoin2.png)
 
+***
+
+![img](https://habrastorage.org/webt/zy/tr/9a/zytr9aow8-2bopcicmymuhxdjj4.png)
+
 ```sql
 -- task 1
 SELECT u.user_id user_id_left,
@@ -927,6 +931,10 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/leftjoin2.png)
 
+***
+
+![img](https://habrastorage.org/webt/d7/cb/7c/d7cb7cq3l98dtscuzpwoh-njiro.png)
+
 
 
 ```sql
@@ -946,12 +954,16 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/257152/rightjoin2.png)
 
+***
+
+![img](https://habrastorage.org/webt/dv/4f/mf/dv4fmfmfwy97ki2d9ui-wnabmwi.png)
+
+
+
 ```sql
 SELECT NOW() - INTERVAL '1 year 2 months 1 week'
 -- 10/10/21 19:32
 ```
-
-
 
 ### FULL JOIN
 
@@ -974,7 +986,9 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260434/fullouterjoin2.png)
 
+***
 
+![Untitled](img/Untitled.png)
 
 ### UNION, EXCEPT, INTERSECT
 
@@ -1039,7 +1053,9 @@ FROM table_A as A
 
 ![img](https://storage.yandexcloud.net/klms-public/production/learning-content/152/1762/17929/53217/260453/cross.png)
 
+***
 
+![img](https://habrastorage.org/webt/cn/pm/1u/cnpm1u8xvea5yn9l2_zs0aslnhi.png)
 
 ```sql
 -- task 11
@@ -1058,7 +1074,7 @@ ORDER BY user_id limit 1000
 
 ### array_agg
 
-`array_agg` — агрегирующая функция, собирает все значения в указанном столбце в единый список `ARRAY`
+`array_agg` — агрегирующая функция, группирует значения в указанном столбце в единый список `ARRAY`.
 
 ```sql
 SELECT column_1, array_agg(column_2) AS new_array
@@ -1097,5 +1113,349 @@ FROM table FULL JOIN table
 
 SELECT ...
 FROM table CROSS JOIN table
+```
+
+
+
+
+
+## 9
+
+## 10 Оконные функции
+
+- [PostgreSQL Window Functions](https://www.postgresqltutorial.com/postgresql-window-function/)
+- [Как посчитать всё на свете одним SQL-запросом. Оконные функции PostgreSQL](https://habr.com/ru/articles/268983/)
+- [Магия оконных функций](https://telegra.ph/Magiya-okonnyh-funkcij-09-23)
+- [PostgreSQL LAG Function](https://www.postgresqltutorial.com/postgresql-window-function/postgresql-lag-function/)
+- [PostgreSQL LEAD Function](https://www.postgresqltutorial.com/postgresql-window-function/postgresql-lead-function/)
+- [PostgreSQL EXTRACT Function](https://www.postgresqltutorial.com/postgresql-date-functions/postgresql-extract/)
+
+
+
+**summary**
+
+- Инструкции `PARTITION BY`, `ORDER BY` и `ROWS BETWEEN`, с помощью которых можно задавать оконные функции и управлять рамкой окна
+- Агрегирующие и ранжирующие функции с окнами, функция смещения
+- `EXTRACT` — аналог `DATE_PART` 
+- Оператор `FILTER` вместе с оконными функциями
+- Скользящее среднее и медиана с помощью оконных функций
+
+
+
+[Practice](sql_queries/simulator_sql/10_windows.sql)
+
+### Оконные функции
+
+![image-20230604223536918](img/image-20230604223536918.png)
+
+Оконные функции возвращают ровно те записи, которые получили на вход, в «расширенном» виде. Определяются окна с помощью оператора `OVER()`.
+
+Синтаксис в общем виде:
+
+```sql
+OVER (
+     PARTITION BY column_1, column_2, ...    -- определяются партиции внутри окна (аналог GROUP BY) 
+     ORDER BY column_3, ...    -- указывается сортировка записей в партициях
+     ROWS/RANGE BETWEEN ...    -- задаются границы окна
+)
+```
+
+Инструкции, которые можно указывать при создании окна:
+
+- `PARTITION BY `
+- `ORDER BY ASC/DESC`
+- `ROWS/RANGE BETWEEN`
+
+При этом все они являются необязательными.
+
+Оконные функции разрешается использовать в запросе только в `SELECT` и `ORDER BY`. Во всех остальных операторах, включая `WHERE`, `HAVING` и `GROUP BY` они запрещены, так как логически выполняются после обычных агрегирующих функций.
+
+***
+
+
+
+Инструкция `PARTITION BY` определяет столбец, по которому данные будут делиться на партиции. Например, `user_id` для группировки по пользователям:
+
+```sql
+SUM(price) OVER (PARTITION BY user_id) as sum
+```
+
+— чтобы для каждой записи в таблице вычислить и вписать в столбец `sum` общую сумму ВСЕХ покупок данного пользователя.
+
+![img](https://telegra.ph/file/e7cf81618fdb10dc3cf6b.jpg)
+
+***
+
+
+
+Инструкция `ORDER BY` определяет столбец, по которому значения внутри окна будут сортироваться при обработке. Например, `date` для сортировки по хронологии:
+
+```sql
+SUM(price) OVER (PARTITION BY user_id ORDER BY date) as sum
+```
+
+— чтобы для каждой записи в таблице вычислить и вписать в столбец `sum` сумму ТЕКУЩЕЙ и ВСЕХ ПРЕДЫДУЩИХ покупок пользователя.
+
+![img](https://telegra.ph/file/45044ce18bc0610971354.jpg)
+
+***
+
+
+
+Инструкции `ROWS` и `RANGE` могут дополнительно ограничивать диапазон работы функций внутри партиции:
+
+```sql
+SUM(price) OVER (PARTITION BY user_id 
+                 ORDER BY date 
+                 ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS 'sum'
+```
+
+— чтобы для каждой записи в таблице вычислить и вписать в столбец `sum` сумму ТЕКУЩЕЙ и ПРЕДЫДУЩЕЙ покупки пользователя.
+
+![img](https://telegra.ph/file/d71c791d0b3aab9b08b3a.jpg)
+
+***
+
+
+
+Рамку можно задать в двух режимах:
+
+- `ROWS` — начало и конец рамки определяются строками относительно текущей строки. 
+- `RANGE` — начало и конец рамки задаются разницей значений в столбце из `ORDER BY`.
+
+Начало и конец рамки задаются одним из следующих способов:
+
+```sql
+UNBOUNDED PRECEDING 
+значение PRECEDING 
+CURRENT ROW значение 
+FOLLOWING UNBOUNDED FOLLOWING
+```
+
+- `UNBOUNDED PRECEDING` — указывает, что рамка начинается с первой строки партиции.
+- `UNBOUNDED FOLLOWING` — указывает, что рамка заканчивается на последней строке партиции.
+- значение `PRECEDING` и значение `FOLLOWING` — указывают, что рамка начинается или заканчивается со сдвигом на заданное число строк относительно текущей строки.
+- `CURRENT ROW` — указывает, что рамка начинается или заканчивается на текущей строке.
+
+------
+
+
+
+Рамка всегда начинается с начала рамки и заканчивается концом рамки. Если конец рамки опущен, подразумевается `CURRENT ROW`. 
+
+По умолчанию рамка определяется так:
+
+```sql
+RANGE UNBOUNDED PRECEDING
+```
+
+Это равносильно расширенному определению рамки:
+
+```sql
+RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+```
+
+Варианты `значение PRECEDING` и `значение FOLLOWING` допускаются только в режиме `ROWS`.
+
+Следующая запись означает создание рамки, включающей **3 строки до текущей и 3 строки после текущей** (текущая строка тоже включается в рамку):
+
+```sql
+ROWS BETWEEN 3 PRECEDING AND 3 FOLLOWING
+```
+
+***
+
+
+
+Если в инструкции `ORDER BY` находится столбец `date` с типом данных `DATE`, то рамку окна можно задать следующим образом:
+
+```sql
+RANGE BETWEEN '3 days' PRECEDING AND '3 days' FOLLOWING
+```
+
+Это будет означать рамку, включающую **3 дня перед и 3 дня после текущей даты** (включая текущую дату).
+
+При указании рамки через `RANGE` обязательным условием является указание только одного столбца в инструкции `ORDER BY`.
+
+Как и все остальные инструкции, инструкция `ROWS/RANGE BETWEEN` является необязательной.
+
+### АГРЕГАТНЫЕ ФУНКЦИИ
+
+`SUM`, `AVG`, `MAX `/ `MIN`, `COUNT`
+
+Внутри окна к таким функциям может применяться `ORDER BY`. Сортировка позволяет получить вместо общей суммы нарастающую, а вместо абсолютного максимума — максимум среди значений вплоть до текущего.
+
+```sql
+-- task 3
+SELECT product_id,
+       name,
+       price,
+       max(price) OVER (ORDER BY price desc) as max_price,
+       min(price) OVER (ORDER BY price desc) as min_price
+FROM   products
+ORDER BY price desc, product_id
+```
+
+```sql
+-- task 4
+SELECT date,
+       orders_count,
+       sum(orders_count) OVER (ORDER BY date) as orders_cum_count
+FROM   (SELECT date(creation_time) as date,
+               count(order_id) as orders_count
+        FROM   orders
+        WHERE  order_id not in (SELECT order_id
+                                FROM   user_actions
+                                WHERE  action = 'cancel_order')
+        GROUP BY date) t
+```
+
+
+
+### РАНЖИРУЮЩИЕ ФУНКЦИИ
+
+`ROW_NUMBER` — простая нумерация (1, 2, 3, 4, 5)
+
+`RANK` — нумерация с учётом повторяющихся значений с пропуском рангов (1, 2, 2, 4, 5)
+
+`DENSE_RANK` — нумерация с учётом повторяющихся значений без пропуска рангов (1, 2, 2, 3, 4)
+
+Для функций ранжирования всегда нужно прописывать `ORDER BY`.
+
+```sql
+-- task 1
+SELECT product_id,
+       name,
+       price,
+       row_number() OVER (ORDER BY price desc) product_number,
+       rank() OVER (ORDER BY price desc) product_rank,
+       dense_rank() OVER (ORDER BY price desc) product_dense_rank
+FROM   products
+```
+
+
+
+### ФУНКЦИИ СМЕЩЕНИЯ
+
+`LAG` / `LEAD` — значение предыдущей или следующей строки
+
+`FIRST_VALUE` / `LAST_VALUE` — первое или последнее значение в окне
+
+Как и в случае с ранжированием, определение правил сортировки для функций смещения обязательно.
+
+```sql
+SELECT LAG(column, 1) OVER (PARTITION BY ... ORDER BY ... ROWS/RANGE BETWEEN ...) AS lag_value
+FROM table
+
+SELECT LEAD(column, 1) OVER (PARTITION BY ... ORDER BY ... ROWS/RANGE BETWEEN ...) AS lead_value
+FROM table
+```
+
+```sql
+-- task 6
+SELECT user_id,
+       order_id,
+       time,
+       row_number() OVER (PARTITION BY user_id
+                          ORDER BY time) as order_number,
+       lag(time, 1) OVER (PARTITION BY user_id
+                          ORDER BY time) as time_lag,
+       time - lag(time, 1) OVER (PARTITION BY user_id
+                                 ORDER BY time) as time_diff
+FROM   user_actions
+WHERE  order_id not in (SELECT order_id
+                        FROM   user_actions
+                        WHERE  action = 'cancel_order')
+ORDER BY user_id, order_number limit 1000
+```
+
+
+
+Окна можно определять через оператор `WINDOW`, а затем вызывать по алиасу в операторе `SELECT`:
+
+```sql
+SELECT SUM(column) OVER w AS sum
+FROM table
+WHERE ...
+GROUP BY ...
+HAVING ...
+WINDOW w AS (
+    PARTITION BY ... 
+    ORDER BY ...
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    )
+ORDER BY ...
+LIMIT ...
+```
+
+
+
+### EXTRACT
+
+```sql
+SELECT EXTRACT(epoch FROM INTERVAL '3 days, 1:21:32')
+-- 264092	
+```
+
+```sql
+-- task 7
+SELECT user_id,
+       round(extract(epoch
+FROM   avg(time_diff)) / (60*60)) hours_between_orders
+FROM   (SELECT user_id,
+               time - lag(time) OVER (PARTITION BY user_id
+                                      ORDER BY time) time_diff
+        FROM   user_actions
+        WHERE  order_id not in (SELECT order_id
+                                FROM   user_actions
+                                WHERE  action = 'cancel_order'))_
+GROUP BY user_id having round(extract(epoch
+FROM   avg(time_diff)) / (60*60)) is not null limit 1000
+```
+
+
+
+### CASE
+
+```sql
+SELECT
+    CASE
+    WHEN SUM(column) OVER (...) > 100 THEN 'above 100'
+    WHEN SUM(column) OVER (...) < 100 THEN 'below 100'
+    ELSE 'equal 100'
+    END AS sum_case
+FROM table
+```
+
+```sql
+-- task 9
+SELECT *,
+       round(avg(delivered_orders) OVER (), 2) avg_delivered_orders,
+       case when delivered_orders > avg(delivered_orders) OVER () then 1
+            else 0 end as is_above_avg
+FROM   (SELECT courier_id,
+               count(courier_id) delivered_orders
+        FROM   courier_actions
+        WHERE  action = 'deliver_order'
+           and date_part('month', time) = 9
+        GROUP BY courier_id)_
+ORDER BY courier_id
+```
+
+
+
+### FILTER
+
+```sql
+-- task 10
+SELECT product_id,
+       name,
+       price,
+       round(avg(price) OVER() , 2) avg_price,
+       round(avg(price) filter(WHERE price != (SELECT max(price)
+                                        FROM   products))
+OVER(), 2) avg_price_filtered
+FROM   products
+ORDER BY price desc, product_id
 ```
 
